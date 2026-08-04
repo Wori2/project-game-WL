@@ -3,144 +3,117 @@ import sys
 import random
 import os
 
-# Inicializácia Pygame
+# --- INICIALIZÁCIA ---
 pygame.init()
 pygame.font.init()
 
 # Rozmery okna
-WIDTH, HEIGHT = 900, 650
+WIDTH, HEIGHT = 1000, 700
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("2D Text Adventure Refactored")
+pygame.display.set_caption("Shadows & Steel - Text Adventure")
 
-# Paleta farieb
-COLOR_BG = (24, 28, 36)
-COLOR_PANEL = (38, 45, 58)
-COLOR_ACCENT = (212, 175, 55)
-COLOR_TEXT = (235, 240, 245)
-COLOR_HP = (46, 204, 113)
-COLOR_ENEMY_HP = (231, 76, 60)
-COLOR_BUTTON = (52, 73, 94)
-COLOR_BUTTON_HOVER = (41, 128, 185)
-COLOR_LOG = (15, 20, 28)
+# --- MODERNÁ PALETA FARIEB ---
+COLOR_BG = (15, 17, 23)           # Tmavé pozadie
+COLOR_PANEL = (24, 28, 38)        # Hlavné panely
+COLOR_CARD = (32, 38, 52)         # Vnútro kariet
+COLOR_SLOT_EMPTY = (22, 26, 35)   # Prázdny slot
+COLOR_BORDER = (55, 65, 85)       # Jemné okraje
+COLOR_ACCENT = (236, 179, 101)    # Zlatý akcent (Zbrane)
+COLOR_CYAN = (64, 201, 255)       # Sekundárny akcent (Brnenie)
+COLOR_PURPLE = (180, 130, 255)     # Utilitné predmety
+COLOR_TEXT = (240, 244, 248)      # Text
+COLOR_MUTED = (130, 140, 160)     # Vedľajší text
+
+COLOR_HP = (46, 213, 115)         # Žiarivá zelená
+COLOR_ENEMY_HP = (255, 71, 87)    # Žiarivá červená
+COLOR_MISS = (241, 196, 15)       # Žltá pre minutie
+
+COLOR_BTN = (40, 48, 66)
+COLOR_BTN_HOVER = (60, 72, 98)
 
 # --- NAČÍTANIE OBRÁZKOV ---
-# Zistenie presnej zložky, v ktorej sa nachádza tento kód
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DRAK_PATH = os.path.join(SCRIPT_DIR, "drak.png")
 
-# Načítanie obrázka draka
 try:
     drak_img = pygame.image.load(DRAK_PATH).convert_alpha()
-    drak_img = pygame.transform.scale(drak_img, (120, 120))
-    print("-> Obrázok draka sa ÚSPEŠNE načítal!")
-except Exception as e:
-    print(f"-> UPOZORNENIE: Obrázok sa nenašiel na ceste: {DRAK_PATH}")
-    print(f"-> Detail chyby: {e}")
+    drak_img = pygame.transform.scale(drak_img, (160, 160))
+except Exception:
     drak_img = None
 
-# Písma
-FONT_TITLE = pygame.font.SysFont("Verdana", 20, bold=True)
-FONT_BODY = pygame.font.SysFont("Verdana", 14)
-FONT_SMALL = pygame.font.SysFont("Verdana", 12)
+# --- PÍSMA ---
+FONT_TITLE = pygame.font.SysFont("Segoe UI", 22, bold=True)
+FONT_SUBTITLE = pygame.font.SysFont("Segoe UI", 16, bold=True)
+FONT_BODY = pygame.font.SysFont("Segoe UI", 14)
+FONT_SMALL = pygame.font.SysFont("Segoe UI", 11)
+FONT_POPUP = pygame.font.SysFont("Segoe UI", 20, bold=True)
 
 # --- MIESTNOSTI ---
 rooms = {
     "hall": {
         "title": "Vstupná hala",
         "description": "Nachádzaš sa vo veľkej vstupnej hale. Na východ je jedáleň, na západ knižnica.",
-        "east": "dining room",
-        "west": "library",
-        "item": None,
-        "bg_color": (50, 40, 60)
+        "east": "dining room", "west": "library", "item": None, "bg_color": (25, 28, 38)
     },
     "dining room": {
         "title": "Jedáleň",
         "description": "Si v priestornej jedálni. Na juhu je kuchyňa, na severe spálňa a na západ je hala.",
-        "south": "kitchen",
-        "north": "bedroom",
-        "west": "hall",
-        "item": "key",
-        "bg_color": (60, 45, 40)
+        "south": "kitchen", "north": "bedroom", "west": "hall", "item": "key", "bg_color": (32, 28, 35)
     },
     "kitchen": {
         "title": "Kuchyňa",
         "description": "Stará kuchyňa. Na západ je záhrada a na juhu vstup do pivnice.",
-        "north": "dining room",
-        "west": "garden",
-        "south": "basement",
-        "item": "sword",
-        "bg_color": (70, 50, 40)
+        "north": "dining room", "west": "garden", "south": "basement", "item": "sword", "bg_color": (35, 30, 28)
     },
     "garden": {
         "title": "Záhrada",
         "description": "Si v zarastenej záhrade. Na severe stojí stará kôlňa.",
-        "north": "shed",
-        "east": "kitchen",
-        "item": None,
-        "enemy": "lion",
-        "bg_color": (30, 60, 40)
+        "north": "shed", "east": "kitchen", "item": None, "enemy": "lion", "bg_color": (20, 35, 28)
     },
     "shed": {
         "title": "Kôlňa",
         "description": "Tmavá kôlňa plná hrdzavého náradia.",
-        "south": "garden",
-        "item": "axe",
-        "enemy": "panther",
-        "bg_color": (40, 40, 30)
+        "south": "garden", "item": "axe", "enemy": "panther", "bg_color": (25, 25, 22)
     },
     "library": {
         "title": "Knižnica",
         "description": "Tiché miesto plné zaprášených kníh. Na severe sa tíši vysoká veža.",
-        "east": "hall",
-        "north": "tower",
-        "item": "ancient book",
-        "enemy": "ghost",
-        "bg_color": (35, 45, 65)
+        "east": "hall", "north": "tower", "item": "ancient book", "enemy": "ghost", "bg_color": (22, 28, 38)
     },
     "bedroom": {
         "title": "Panská spálňa",
         "description": "Veľká spálňa s dominantnou posteľou. Na severe je balkón.",
-        "south": "dining room",
-        "north": "balcony",
-        "item": "armor",
-        "bg_color": (60, 35, 50)
+        "south": "dining room", "north": "balcony", "item": "armor", "bg_color": (32, 24, 32)
     },
     "balcony": {
         "title": "Balkón",
-        "description": "Balkón s výhľadom na celú záhradu. Fúka tu príjemný chladný vánok.",
-        "south": "bedroom",
-        "item": None,
-        "bg_color": (40, 55, 70)
+        "description": "Balkón s výhľadom na celú záhrada. Fúka tu príjemný chladný vánok.",
+        "south": "bedroom", "item": None, "bg_color": (22, 32, 40)
     },
     "basement": {
         "title": "Temná pivnica",
         "description": "Chladná a temná pivnica. Počuť tu čudné zvuky.",
-        "north": "kitchen",
-        "item": "shield",
-        "enemy": "zombie",
-        "bg_color": (25, 25, 30)
+        "north": "kitchen", "item": "shield", "enemy": "zombie", "bg_color": (18, 18, 22)
     },
     "tower": {
         "title": "Vysoká veža",
         "description": "Vrchol veže s výhľadom na šíre okolie.",
-        "south": "library",
-        "item": "magic staff",
-        "enemy": "dragon",
-        "bg_color": (45, 30, 55)
+        "south": "library", "item": "magic staff", "enemy": "dragon", "bg_color": (30, 22, 35)
     }
 }
 
 # --- NEPRIATELIA ---
 enemy_stats = {
-    "dragon": {"name": "Drak", "hp": 20, "max_hp": 20, "ac": 18, "damage_range": (1, 15), "color": (220, 50, 50)},
-    "zombie": {"name": "Zombie", "hp": 8, "max_hp": 8, "ac": 8, "damage_range": (1, 5), "color": (100, 140, 80)},
-    "lion": {"name": "Lev", "hp": 12, "max_hp": 12, "ac": 15, "damage_range": (1, 7), "color": (210, 150, 50)},
-    "panther": {"name": "Panter", "hp": 10, "max_hp": 10, "ac": 13, "damage_range": (1, 5), "color": (70, 70, 90)},
-    "ghost": {"name": "Duch", "hp": 2, "max_hp": 2, "ac": 5, "damage_range": (1, 2), "color": (180, 220, 240)}
+    "dragon": {"name": "Drak", "hp": 20, "max_hp": 20, "ac": 18, "damage_range": (1, 15), "color": (231, 76, 60)},
+    "zombie": {"name": "Zombie", "hp": 8, "max_hp": 8, "ac": 8, "damage_range": (1, 5), "color": (46, 204, 113)},
+    "lion": {"name": "Lev", "hp": 12, "max_hp": 12, "ac": 15, "damage_range": (1, 7), "color": (241, 196, 15)},
+    "panther": {"name": "Panter", "hp": 10, "max_hp": 10, "ac": 13, "damage_range": (1, 5), "color": (155, 89, 182)},
+    "ghost": {"name": "Duch", "hp": 2, "max_hp": 2, "ac": 5, "damage_range": (1, 2), "color": (52, 152, 219)}
 }
 
-# Stav Hráča
+# Hráčové štatistiky
 inventory = []
+MAX_INVENTORY_SLOTS = 10
 current_room = "hall"
 player_hp = 10
 player_max_hp = 10
@@ -152,34 +125,72 @@ shield_bonus = 0
 combat_active = False
 current_enemy = None
 current_enemy_hp = 0
-combat_logs = []
+
+# --- LIETAJÚCI BATTLE TEXT & NOTIFIKÁCIE ---
+floating_texts = []
+status_message = None
+status_timer = 0
+
+class DamageText:
+    """Plávajúce číselné poškodenie alebo text nad cieľom."""
+    def __init__(self, x, y, text, color):
+        self.x = x
+        self.y = y
+        self.text = text
+        self.color = color
+        self.lifetime = 60
+        self.alpha = 255
+
+    def update(self):
+        self.y -= 0.8
+        self.lifetime -= 1
+        self.alpha = max(0, int((self.lifetime / 60) * 255))
+
+    def draw(self, surface):
+        if self.lifetime > 0:
+            surf = FONT_POPUP.render(self.text, True, self.color)
+            surf.set_alpha(self.alpha)
+            rect = surf.get_rect(center=(self.x, self.y))
+            surface.blit(surf, rect)
+
+def spawn_popup(x, y, text, color):
+    floating_texts.append(DamageText(x, y, text, color))
+
+def show_status(msg):
+    global status_message, status_timer
+    status_message = msg
+    status_timer = 90  # 3 sekundy pri 30 FPS
 
 def get_player_ac():
     return base_player_ac + armor_bonus + shield_bonus
 
-def add_log(msg):
-    combat_logs.append(msg)
-    if len(combat_logs) > 6:
-        combat_logs.pop(0)
-
-# Trieda pre UI Tlačidlá
+# --- MODERNÉ TLAČIDLO ---
 class Button:
-    def __init__(self, x, y, w, h, text, callback, enabled=True):
+    def __init__(self, x, y, w, h, text, callback, enabled=True, accent=False):
         self.rect = pygame.Rect(x, y, w, h)
         self.text = text
         self.callback = callback
         self.enabled = enabled
+        self.accent = accent
 
     def draw(self, surface):
         mouse_pos = pygame.mouse.get_pos()
-        color = COLOR_BUTTON_HOVER if (self.rect.collidepoint(mouse_pos) and self.enabled) else COLOR_BUTTON
+        is_hovered = self.rect.collidepoint(mouse_pos) and self.enabled
+
+        bg_color = COLOR_BTN_HOVER if is_hovered else COLOR_BTN
         if not self.enabled:
-            color = (60, 60, 65)
+            bg_color = (25, 29, 38)
 
-        pygame.draw.rect(surface, color, self.rect, border_radius=6)
-        pygame.draw.rect(surface, COLOR_ACCENT if self.enabled else (90, 90, 90), self.rect, 2, border_radius=6)
+        pygame.draw.rect(surface, bg_color, self.rect, border_radius=8)
 
-        text_surf = FONT_BODY.render(self.text, True, COLOR_TEXT if self.enabled else (120, 120, 120))
+        border_color = COLOR_ACCENT if (self.accent and self.enabled) else (COLOR_CYAN if is_hovered else COLOR_BORDER)
+        if not self.enabled:
+            border_color = (40, 45, 55)
+
+        pygame.draw.rect(surface, border_color, self.rect, 2, border_radius=8)
+
+        text_color = COLOR_TEXT if self.enabled else COLOR_MUTED
+        text_surf = FONT_SUBTITLE.render(self.text, True, text_color)
         text_rect = text_surf.get_rect(center=self.rect.center)
         surface.blit(text_surf, text_rect)
 
@@ -188,7 +199,20 @@ class Button:
             if self.rect.collidepoint(event.pos) and self.enabled:
                 self.callback()
 
-# Herná logika
+# --- POMOCNÉ KRESLIACE FUNKCIE ---
+def draw_card(surface, rect, border_color=COLOR_BORDER):
+    pygame.draw.rect(surface, COLOR_PANEL, rect, border_radius=12)
+    pygame.draw.rect(surface, border_color, rect, 2, border_radius=12)
+
+def draw_bar(surface, x, y, w, h, val, max_val, color):
+    pygame.draw.rect(surface, (20, 24, 32), (x, y, w, h), border_radius=6)
+    ratio = max(0, val) / max_val
+    fill_w = int(w * ratio)
+    if fill_w > 0:
+        pygame.draw.rect(surface, color, (x, y, fill_w, h), border_radius=6)
+    pygame.draw.rect(surface, COLOR_BORDER, (x, y, w, h), 1, border_radius=6)
+
+# --- HERNÁ LOGIKA ---
 def move(direction):
     global current_room, combat_active, current_enemy, current_enemy_hp
     if direction in rooms[current_room]:
@@ -198,21 +222,25 @@ def move(direction):
             current_enemy = enemy_type
             current_enemy_hp = enemy_stats[enemy_type]["hp"]
             combat_active = True
-            add_log(f"Útočí na teba {enemy_stats[enemy_type]['name']}!")
+            show_status(f"⚠️ Útočí na teba {enemy_stats[enemy_type]['name']}!")
 
 def take_item():
     global armor_bonus, shield_bonus
     item = rooms[current_room].get("item")
     if item:
+        if len(inventory) >= MAX_INVENTORY_SLOTS:
+            show_status("⚠️ Tvoj inventár je plný!")
+            return
+
         inventory.append(item)
         rooms[current_room]["item"] = None
-        add_log(f"Zozbieral si: {item}")
+        show_status(f"✨ Zozbieral si: {item.capitalize()}")
         if item == "armor":
             armor_bonus = 3
-            add_log("Tvoje Brnenie zvýšilo AC o +3!")
+            spawn_popup(750, 60, "+3 AC (Brnenie)", COLOR_CYAN)
         elif item == "shield":
             shield_bonus = 1
-            add_log("Tvoj Štít zvýšil AC o +1!")
+            spawn_popup(750, 60, "+1 AC (Štít)", COLOR_CYAN)
 
 def execute_attack(weapon):
     global current_enemy_hp, player_hp, combat_active
@@ -220,125 +248,197 @@ def execute_attack(weapon):
         return
 
     e_data = enemy_stats[current_enemy]
-    e_name = e_data["name"]
-
+    
     weapon_bonus = {"sword": 1, "axe": 4, "magic staff": 2}.get(weapon, 0)
     weapon_damage_bonus = {"sword": 2, "axe": 4, "magic staff": 3}.get(weapon, 0)
 
-    # 1. Ťah hráča
+    enemy_x_center = 460
+    player_x_center = 750
+
+    # 1. Hráčov útok
     roll = random.randint(1, 20)
     total_attack = roll + weapon_bonus
-    add_log(f"Útok zbraňou ({weapon}): hod {roll} + {weapon_bonus} = {total_attack} vs AC {e_data['ac']}")
 
     if total_attack >= e_data["ac"]:
         damage = random.randint(1, 5) + weapon_damage_bonus
         current_enemy_hp -= damage
-        add_log(f"Zásah! Spôsobil si {damage} poškodenia.")
+        spawn_popup(enemy_x_center, 220, f"-{damage}", COLOR_ENEMY_HP)
         
         if current_enemy_hp <= 0:
-            add_log(f"Porazil si {e_name}!")
+            show_status(f"⚔️ Porazil si {e_data['name']}!")
             del rooms[current_room]["enemy"]
             combat_active = False
             
-            # Šanca na zničenie zbrane
             if random.random() < 0.5:
                 inventory.remove(weapon)
-                add_log(f"Tvoja zbraň ({weapon}) sa pri úderu zničila!")
+                show_status(f"💥 Tvoja zbraň ({weapon}) sa zničila!")
             return
     else:
-        add_log("Auu! Netrafil si!")
+        spawn_popup(enemy_x_center, 220, "MISSED!", COLOR_MISS)
 
-    # 2. Ťah nepriateľa
+    # 2. Nepriateľov útok
     enemy_roll = random.randint(1, 20)
     p_ac = get_player_ac()
-    add_log(f"{e_name} útočí: hod {enemy_roll} vs Tvoje AC {p_ac}")
 
     if enemy_roll >= p_ac:
         e_dmg = random.randint(*e_data["damage_range"])
         player_hp -= e_dmg
-        add_log(f"{e_name} ťa zasiahol za {e_dmg} HP!")
+        spawn_popup(player_x_center, 60, f"-{e_dmg} HP", COLOR_ENEMY_HP)
         if player_hp <= 0:
-            add_log("Bol si porazený... Koniec hry!")
+            show_status("☠️ Bol si porazený... Koniec hry!")
     else:
-        add_log(f"{e_name} minul!")
+        spawn_popup(player_x_center, 60, "BLOCKED!", COLOR_CYAN)
 
 def run_away():
     global combat_active
     if combat_active:
-        add_log("Podarilo sa ti úspešne utiecť!")
+        show_status("🏃 Podarilo sa ti utiecť!")
         combat_active = False
 
-# Hlavná slučka
+# --- HLAVNÝ HERNÝ CYKLUS ---
 def main():
-    global player_hp
+    global player_hp, status_timer
     clock = pygame.time.Clock()
     
     running = True
     while running:
         screen.fill(COLOR_BG)
 
-        # --- PANEL HLAVIČKY (STATISTIKY) ---
-        panel_rect = pygame.Rect(20, 20, 860, 70)
-        pygame.draw.rect(screen, COLOR_PANEL, panel_rect, border_radius=8)
-        pygame.draw.rect(screen, COLOR_ACCENT, panel_rect, 2, border_radius=8)
-
-        title_surf = FONT_TITLE.render(rooms[current_room]["title"], True, COLOR_ACCENT)
-        screen.blit(title_surf, (40, 32))
-
-        # Životy (HP Bar)
-        hp_text = FONT_BODY.render(f"HP: {max(0, player_hp)} / {player_max_hp}", True, COLOR_TEXT)
-        screen.blit(hp_text, (550, 32))
+        # -------------------------------------------------------------
+        # 1. TOP HEADER (PLAYER STATS)
+        # -------------------------------------------------------------
+        draw_card(screen, pygame.Rect(20, 20, 960, 75), COLOR_BORDER)
         
-        pygame.draw.rect(screen, (80, 80, 80), (660, 35, 120, 16), border_radius=4)
-        hp_ratio = max(0, player_hp) / player_max_hp
-        pygame.draw.rect(screen, COLOR_HP, (660, 35, int(120 * hp_ratio), 16), border_radius=4)
+        # Názov miestnosti
+        title_surf = FONT_TITLE.render(rooms[current_room]["title"].upper(), True, COLOR_ACCENT)
+        screen.blit(title_surf, (40, 32))
+        
+        sub_title = FONT_SMALL.render("MIESTNOST", True, COLOR_MUTED)
+        screen.blit(sub_title, (40, 60))
 
-        # Ochrana (AC)
-        ac_text = FONT_BODY.render(f"Ochrana (AC): {get_player_ac()}", True, COLOR_TEXT)
-        screen.blit(ac_text, (400, 32))
+        # Ochrana (AC Badge)
+        ac_badge = pygame.Rect(480, 35, 120, 45)
+        pygame.draw.rect(screen, COLOR_CARD, ac_badge, border_radius=8)
+        pygame.draw.rect(screen, COLOR_BORDER, ac_badge, 1, border_radius=8)
+        
+        ac_val = FONT_SUBTITLE.render(f"AC {get_player_ac()}", True, COLOR_CYAN)
+        ac_lbl = FONT_SMALL.render("OCHRANA", True, COLOR_MUTED)
+        screen.blit(ac_val, (495, 42))
+        screen.blit(ac_lbl, (495, 60))
 
-        # --- HLAVNÉ OKNO / MIESTNOSŤ ---
-        view_rect = pygame.Rect(20, 105, 500, 300)
-        room_bg = rooms[current_room].get("bg_color", (40, 40, 50))
-        pygame.draw.rect(screen, room_bg, view_rect, border_radius=8)
-        pygame.draw.rect(screen, COLOR_PANEL, view_rect, 3, border_radius=8)
+        # HP Bar Hráča
+        hp_lbl = FONT_SMALL.render(f"HP {max(0, player_hp)} / {player_max_hp}", True, COLOR_TEXT)
+        screen.blit(hp_lbl, (630, 32))
+        draw_bar(screen, 630, 52, 330, 18, player_hp, player_max_hp, COLOR_HP)
 
-        # Predmet na zemi
+        # -------------------------------------------------------------
+        # 2. MAIN EXPANDED VIEWPORT
+        # -------------------------------------------------------------
+        view_rect = pygame.Rect(20, 110, 660, 330)
+        room_bg = rooms[current_room].get("bg_color", COLOR_PANEL)
+        
+        pygame.draw.rect(screen, room_bg, view_rect, border_radius=12)
+        pygame.draw.rect(screen, COLOR_BORDER, view_rect, 2, border_radius=12)
+
+        # Predmet na zemi v miestnosti
         room_item = rooms[current_room].get("item")
         if room_item:
-            pygame.draw.circle(screen, COLOR_ACCENT, (100, 250), 20)
-            item_txt = FONT_SMALL.render(f"Predmet: {room_item}", True, COLOR_TEXT)
-            screen.blit(item_txt, (70, 280))
+            item_box = pygame.Rect(40, 360, 220, 60)
+            pygame.draw.rect(screen, COLOR_CARD, item_box, border_radius=8)
+            pygame.draw.rect(screen, COLOR_ACCENT, item_box, 1, border_radius=8)
+            
+            lbl = FONT_SMALL.render("NÁJDENÝ PREDMET", True, COLOR_ACCENT)
+            val = FONT_SUBTITLE.render(room_item.capitalize(), True, COLOR_TEXT)
+            screen.blit(lbl, (50, 365))
+            screen.blit(val, (50, 385))
 
-        # Vykreslenie nepriateľa
+        # Kreslenie nepriateľa
         if combat_active and current_enemy:
             e_info = enemy_stats[current_enemy]
             
-            # Ak je to drak A obrázok sa podarilo načítať
-            if current_enemy == "dragon" and drak_img:
-                screen.blit(drak_img, (320, 180))
-            else:
-                # Ostatní nepriatelia (alebo drak bez načítaného obrázka)
-                pygame.draw.rect(screen, e_info["color"], (320, 180, 120, 120), border_radius=8)
-            
-            e_title = FONT_TITLE.render(e_info["name"], True, COLOR_TEXT)
-            screen.blit(e_title, (330, 140))
-            
-            # HP nepriateľa
-            e_hp_ratio = max(0, current_enemy_hp) / e_info["max_hp"]
-            pygame.draw.rect(screen, (80, 80, 80), (320, 310, 120, 12), border_radius=3)
-            pygame.draw.rect(screen, COLOR_ENEMY_HP, (320, 310, int(120 * e_hp_ratio), 12), border_radius=3)
+            # Karta nepriateľa
+            enemy_card = pygame.Rect(340, 130, 320, 290)
+            pygame.draw.rect(screen, COLOR_CARD, enemy_card, border_radius=10)
+            pygame.draw.rect(screen, COLOR_ENEMY_HP, enemy_card, 1, border_radius=10)
 
-        # Popis miestnosti
-        desc_rect = pygame.Rect(20, 420, 500, 90)
-        pygame.draw.rect(screen, COLOR_PANEL, desc_rect, border_radius=8)
+            # Obrázok / Avatar nepriateľa
+            if current_enemy == "dragon" and drak_img:
+                screen.blit(drak_img, (420, 140))
+            else:
+                pygame.draw.circle(screen, e_info["color"], (500, 210), 50)
+                pygame.draw.circle(screen, COLOR_CARD, (500, 210), 44)
+                e_initial = FONT_TITLE.render(e_info["name"][0], True, COLOR_TEXT)
+                screen.blit(e_initial, e_initial.get_rect(center=(500, 210)))
+
+            e_name = FONT_SUBTITLE.render(e_info["name"], True, COLOR_TEXT)
+            screen.blit(e_name, e_name.get_rect(center=(500, 280)))
+            
+            # HP Nepriateľa
+            draw_bar(screen, 370, 310, 260, 14, current_enemy_hp, e_info["max_hp"], COLOR_ENEMY_HP)
+            e_hp_txt = FONT_SMALL.render(f"HP: {max(0, current_enemy_hp)} / {e_info['max_hp']}", True, COLOR_MUTED)
+            screen.blit(e_hp_txt, e_hp_txt.get_rect(center=(500, 335)))
+
+        # -------------------------------------------------------------
+        # 3. FIXED SLOTS INVENTORY PANEL (RIGHT SIDE)
+        # -------------------------------------------------------------
+        inv_rect = pygame.Rect(700, 110, 280, 435)
+        pygame.draw.rect(screen, COLOR_PANEL, inv_rect, border_radius=12)
+        pygame.draw.rect(screen, COLOR_BORDER, inv_rect, 2, border_radius=12)
+
+        inv_title = FONT_SUBTITLE.render("INVENTÁR A VÝBAVA", True, COLOR_CYAN)
+        screen.blit(inv_title, (715, 125))
         
+        slot_count_txt = FONT_SMALL.render(f"{len(inventory)}/{MAX_INVENTORY_SLOTS}", True, COLOR_MUTED)
+        screen.blit(slot_count_txt, (935, 128))
+
+        pygame.draw.line(screen, COLOR_BORDER, (715, 150), (965, 150), 1)
+
+        # Mriežka 10 samostatných slotov (2 stĺpce x 5 riadkov)
+        for i in range(MAX_INVENTORY_SLOTS):
+            col = i % 2
+            row = i // 2
+            
+            x_pos = 715 + col * 128
+            y_pos = 160 + row * 52
+            
+            slot_rect = pygame.Rect(x_pos, y_pos, 120, 44)
+            
+            if i < len(inventory):
+                # Obsadený slot
+                item = inventory[i]
+                pygame.draw.rect(screen, COLOR_CARD, slot_rect, border_radius=8)
+                pygame.draw.rect(screen, COLOR_BORDER, slot_rect, 1, border_radius=8)
+                
+                # Farebný indikátor typu
+                if item in ["sword", "axe", "magic staff"]:
+                    dot_color = COLOR_ACCENT
+                elif item in ["armor", "shield"]:
+                    dot_color = COLOR_CYAN
+                else:
+                    dot_color = COLOR_PURPLE
+                    
+                pygame.draw.circle(screen, dot_color, (x_pos + 15, y_pos + 22), 5)
+                
+                name_txt = FONT_SMALL.render(item.capitalize(), True, COLOR_TEXT)
+                screen.blit(name_txt, (x_pos + 28, y_pos + 15))
+            else:
+                # Prázdny slot
+                pygame.draw.rect(screen, COLOR_SLOT_EMPTY, slot_rect, border_radius=8)
+                pygame.draw.rect(screen, (35, 42, 55), slot_rect, 1, border_radius=8)
+                empty_lbl = FONT_SMALL.render(f"Slot {i+1}", True, (50, 60, 80))
+                screen.blit(empty_lbl, empty_lbl.get_rect(center=slot_rect.center))
+
+        # -------------------------------------------------------------
+        # 4. DESCRIPTION CARD
+        # -------------------------------------------------------------
+        desc_rect = pygame.Rect(20, 450, 660, 95)
+        draw_card(screen, desc_rect)
+
         words = rooms[current_room]["description"].split(' ')
-        lines = []
-        current_line = ""
+        lines, current_line = [], ""
         for word in words:
             test_line = current_line + word + " "
-            if FONT_BODY.size(test_line)[0] < 470:
+            if FONT_BODY.size(test_line)[0] < 620:
                 current_line = test_line
             else:
                 lines.append(current_line)
@@ -347,71 +447,85 @@ def main():
 
         for i, line in enumerate(lines):
             line_surf = FONT_BODY.render(line, True, COLOR_TEXT)
-            screen.blit(line_surf, (35, 430 + i * 22))
+            screen.blit(line_surf, (35, 465 + i * 22))
 
-        # --- BOJOVÝ LOG ---
-        log_rect = pygame.Rect(540, 105, 340, 405)
-        pygame.draw.rect(screen, COLOR_LOG, log_rect, border_radius=8)
-        pygame.draw.rect(screen, COLOR_PANEL, log_rect, 2, border_radius=8)
-        
-        log_title = FONT_TITLE.render("Herný Denník", True, COLOR_ACCENT)
-        screen.blit(log_title, (555, 115))
+        # -------------------------------------------------------------
+        # 5. CONTROLS AREA
+        # -------------------------------------------------------------
+        ctrl_rect = pygame.Rect(20, 560, 960, 115)
+        draw_card(screen, ctrl_rect)
 
-        for idx, log_entry in enumerate(combat_logs):
-            log_surf = FONT_SMALL.render(f"> {log_entry}", True, COLOR_TEXT)
-            screen.blit(log_surf, (555, 150 + idx * 38))
-
-        # --- OVLÁDACIE TLAČIDLÁ ---
         buttons = []
 
         if player_hp <= 0:
-            game_over_surf = FONT_TITLE.render("KONIEC HRY - BOL SI PORAZENÝ", True, COLOR_ENEMY_HP)
-            screen.blit(game_over_surf, (200, 560))
+            game_over_surf = FONT_TITLE.render("BOL SI PORAZENÝ - KONIEC HRY", True, COLOR_ENEMY_HP)
+            screen.blit(game_over_surf, game_over_surf.get_rect(center=(500, 615)))
         elif combat_active:
             # Bojové tlačidlá
             weapons = [w for w in inventory if w in ["sword", "axe", "magic staff"]]
             if weapons:
                 for idx, w in enumerate(weapons):
-                    btn = Button(30 + idx * 130, 535, 120, 45, f"Útok {w}", lambda w=w: execute_attack(w))
+                    btn = Button(40 + idx * 160, 590, 150, 55, f"Útok {w.capitalize()}", lambda w=w: execute_attack(w), accent=True)
                     buttons.append(btn)
             else:
-                btn_no_wep = Button(30, 535, 200, 45, "Nemáš zbraň", lambda: add_log("Nemáš zbraň!"), enabled=False)
+                btn_no_wep = Button(40, 590, 200, 55, "Nemáš zbraň", lambda: show_status("⚠️ Nemáš zbraň!"), enabled=False)
                 buttons.append(btn_no_wep)
 
-            btn_run = Button(400, 535, 110, 45, "Útek", run_away)
+            btn_run = Button(800, 590, 140, 55, "Útek", run_away)
             buttons.append(btn_run)
         else:
-            # Tlačidlá pohybu
+            # Pohybové tlačidlá
             cur = rooms[current_room]
-            btn_n = Button(110, 520, 80, 35, "Sever (W)", lambda: move("north"), enabled="north" in cur)
-            btn_s = Button(110, 580, 80, 35, "Juh (S)", lambda: move("south"), enabled="south" in cur)
-            btn_w = Button(20, 550, 80, 35, "Západ (A)", lambda: move("west"), enabled="west" in cur)
-            btn_e = Button(200, 550, 80, 35, "Východ (D)", lambda: move("east"), enabled="east" in cur)
+            btn_n = Button(130, 570, 80, 42, "▲ N", lambda: move("north"), enabled="north" in cur)
+            btn_s = Button(130, 620, 80, 42, "▼ S", lambda: move("south"), enabled="south" in cur)
+            btn_w = Button(45, 595, 80, 42, "◀ W", lambda: move("west"), enabled="west" in cur)
+            btn_e = Button(215, 595, 80, 42, "▶ E", lambda: move("east"), enabled="east" in cur)
 
             buttons.extend([btn_n, btn_s, btn_w, btn_e])
 
-            # Tlačidlo na zozbieranie predmetu
+            # Tlačidlo vyzdvihnutia predmetu
             if cur.get("item"):
-                btn_take = Button(320, 550, 160, 40, f"Zobrať: {cur['item']}", take_item)
+                btn_take = Button(340, 590, 240, 55, f"Zobrať: {cur['item'].capitalize()}", take_item, accent=True)
                 buttons.append(btn_take)
 
         for btn in buttons:
             btn.draw(screen)
 
-        # Spracovanie udalostí
+        # -------------------------------------------------------------
+        # 6. DRAW FLOATING COMBAT TEXTS & NOTIFICATIONS
+        # -------------------------------------------------------------
+        for pop in floating_texts[:]:
+            pop.update()
+            pop.draw(screen)
+            if pop.lifetime <= 0:
+                floating_texts.remove(pop)
+
+        # Status Banner
+        if status_timer > 0 and status_message:
+            status_timer -= 1
+            toast_rect = pygame.Rect(300, 120, 400, 40)
+            pygame.draw.rect(screen, COLOR_CARD, toast_rect, border_radius=8)
+            pygame.draw.rect(screen, COLOR_ACCENT, toast_rect, 1, border_radius=8)
+            
+            t_surf = FONT_SUBTITLE.render(status_message, True, COLOR_TEXT)
+            screen.blit(t_surf, t_surf.get_rect(center=toast_rect.center))
+
+        # -------------------------------------------------------------
+        # EVENT HANDLING
+        # -------------------------------------------------------------
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             
-            # Ovládanie klávesnicou (WASD)
+            # Klávesové skratky (WASD / Šípky)
             if not combat_active and player_hp > 0 and event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_w or event.key == pygame.K_UP:
+                if event.key in (pygame.K_w, pygame.K_UP):
                     move("north")
-                elif event.key == pygame.K_s or event.key == pygame.K_DOWN:
+                elif event.key in (pygame.K_s, pygame.K_DOWN):
                     move("south")
-                elif event.key == pygame.K_a or event.key == pygame.K_LEFT:
+                elif event.key in (pygame.K_a, pygame.K_LEFT):
                     move("west")
-                elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
+                elif event.key in (pygame.K_d, pygame.K_RIGHT):
                     move("east")
 
             for btn in buttons:
